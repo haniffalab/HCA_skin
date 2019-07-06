@@ -1,0 +1,78 @@
+R version 3.5.2 (2018-12-20)
+Platform: x86_64-apple-darwin15.6.0 (64-bit)
+Running under: macOS High Sierra 10.13.6
+
+Matrix products: default
+BLAS: /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib
+LAPACK: /Library/Frameworks/R.framework/Versions/3.5/Resources/lib/libRlapack.dylib
+
+locale:
+[1] en_GB.UTF-8/en_GB.UTF-8/en_GB.UTF-8/C/en_GB.UTF-8/en_GB.UTF-8
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets 
+[6] methods   base     
+
+other attached packages:
+[1] harmony_0.1.0 Rcpp_1.0.0    dplyr_0.8.0.1
+[4] Seurat_2.3.4  Matrix_1.2-15 cowplot_0.9.4
+[7] ggplot2_3.1.0
+
+loaded via a namespace (and not attached):
+  [1] Rtsne_0.15          colorspace_1.4-0   
+  [3] class_7.3-14        modeltools_0.2-22  
+  [5] ggridges_0.5.1      mclust_5.4.2       
+  [7] htmlTable_1.13.1    base64enc_0.1-3    
+  [9] rstudioapi_0.9.0    proxy_0.4-22       
+ [11] npsurv_0.4-0        flexmix_2.3-15     
+ [13] bit64_0.9-7         mvtnorm_1.0-8      
+ [15] codetools_0.2-15    splines_3.5.2      
+ [17] R.methodsS3_1.7.1   lsei_1.2-0         
+ [19] robustbase_0.93-3   knitr_1.22         
+ [21] Formula_1.2-3       jsonlite_1.6       
+ [23] ica_1.0-2           cluster_2.0.7-1    
+ [25] kernlab_0.9-27      png_0.1-7          
+ [27] R.oo_1.22.0         compiler_3.5.2     
+ [29] httr_1.4.0          backports_1.1.3    
+ [31] assertthat_0.2.0    lazyeval_0.2.1     
+ [33] lars_1.2            acepack_1.4.1      
+ [35] htmltools_0.3.6     tools_3.5.2        
+ [37] igraph_1.2.4        gtable_0.2.0       
+ [39] glue_1.3.0          RANN_2.6.1         
+ [41] reshape2_1.4.3      trimcluster_0.1-2.1
+ [43] gdata_2.18.0        ape_5.2            
+ [45] nlme_3.1-137        iterators_1.0.10   
+ [47] fpc_2.1-11.1        gbRd_0.4-11        
+ [49] lmtest_0.9-36       xfun_0.5           
+ [51] stringr_1.4.0       irlba_2.3.3        
+ [53] gtools_3.8.1        DEoptimR_1.0-8     
+ [55] MASS_7.3-51.1       zoo_1.8-4          
+ [57] scales_1.0.0        doSNOW_1.0.16      
+ [59] parallel_3.5.2      RColorBrewer_1.1-2 
+ [61] yaml_2.2.0          reticulate_1.10    
+ [63] pbapply_1.4-0       gridExtra_2.3      
+ [65] rpart_4.1-13        segmented_0.5-3.0  
+ [67] latticeExtra_0.6-28 stringi_1.3.1      
+ [69] foreach_1.4.4       checkmate_1.9.1    
+ [71] caTools_1.17.1.1    bibtex_0.4.2       
+ [73] Rdpack_0.10-1       SDMTools_1.1-221   
+ [75] rlang_0.3.1         pkgconfig_2.0.2    
+ [77] dtw_1.20-1          prabclus_2.2-7     
+ [79] bitops_1.0-6        lattice_0.20-38    
+ [81] ROCR_1.0-7          purrr_0.3.0        
+ [83] htmlwidgets_1.3     labeling_0.3       
+ [85] bit_1.1-14          tidyselect_0.2.5   
+ [87] plyr_1.8.4          magrittr_1.5       
+ [89] R6_2.4.0            snow_0.4-3         
+ [91] gplots_3.0.1.1      Hmisc_4.2-0        
+ [93] pillar_1.3.1        foreign_0.8-71     
+ [95] withr_2.1.2         fitdistrplus_1.0-14
+ [97] mixtools_1.1.0      survival_2.43-3    
+ [99] nnet_7.3-12         tibble_2.0.1       
+[101] tsne_0.1-3          crayon_1.3.4       
+[103] hdf5r_1.0.1         KernSmooth_2.23-15 
+[105] grid_3.5.2          data.table_1.12.0  
+[107] metap_1.1           digest_0.6.18      
+[109] diptest_0.75-7      tidyr_0.8.2        
+[111] R.utils_2.8.0       stats4_3.5.2       
+[113] munsell_0.5.0      
