@@ -245,6 +245,9 @@ figure_shared.savefig('Figure_4G_shared_clonotypes_celltype.ps')
 ###############################################################################
 #%% Supplementary for Figure 4: we export the Shannon indices, then plot in R
 # The 'downsampling()' function used below is defined in downsampling.py
+meta = 'donor_id_Status_Site'
+category = 'vdj_clonotype'
+
 filtering_cells = adata.obs
 filtering_cells['donor_id_Status_Site'] = filtering_cells['donor_id'].astype(str) + '_' + filtering_cells['Status'].astype(str) + '_' + filtering_cells['Site'].astype(str)
 filtering_cells = filtering_cells[filtering_cells['vdj_has_vdjdata'] == True]
