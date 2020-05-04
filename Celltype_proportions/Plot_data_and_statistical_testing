@@ -1,0 +1,70 @@
+setwd("/home/ngr18/hcaskin/proportions/")
+library(ggplot2)
+library(reshape2)
+library(stringr)
+library(reshape2)
+library(MASS)
+library(tidyr)
+library(dplyr)
+
+###Import myeloid proportion data (contains counts split by donor, site (lesion vs non-lesion), 
+###layer (i.e. dermis vs epidermis) and Celltype (e.g. Mac1, NK1))
+
+a<-read.csv("myeloid_dermis_counts.csv", header=T)
+
+out<-split(a, a$Site)
+EL<-out$`C_Eczema-lesion`
+EL<-tapply(EL$Number, EL$Celltype, FUN=median)
+ENL<-out$`B_Eczema-non_lesion`
+ENL<-tapply(ENL$Number, ENL$Celltype, FUN=median)
+H<-out$`A_Healthy`
+H<-tapply(H$Number, H$Celltype, FUN=median)
+PL<-out$`E_Psoriasis-lesion`
+PL<-tapply(PL$Number, PL$Celltype, FUN=median)
+PNL<-out$`D_Psoriasis-non_lesion`
+PNL<-tapply(PNL$Number, PNL$Celltype, FUN=median)
+
+df<-cbind(EL,ENL,H,PL,PNL)
+colnames(df)<-c("C_EL","B_ENL","A_H","E_PL","D_PNL")
+df[is.na(df)] <- 0
+df2<-prop.table(df, 2)
+df3<-melt(df2)
+colnames(df3)<-c("Celltype","Status","Proportion")
+
+df3$Status <- factor(df3$Status, levels = c("A_H", "B_ENL",
+  
+  "C_EL", "D_PNL",  "E_PL"))
+
+###Plot data
+
+ggplot(data=df3, aes(x=Status, y=Proportion, fill=Celltype)) +
+    geom_bar(stat="identity", position="fill",color="black", width = 0.5) + 
+  theme(axis.line =element_blank(), axis.title.x=element_blank(), axis.title.y=element_blank(),  axis.text = element_blank(), axis.ticks = element_blank(),strip.text.x = element_text(size = 12)) + theme_bw() +
+scale_fill_manual(values=c('#d33d6a', '#bb7784', '#154496', 
+                           '#89168d', '#64c5e4', '#47b9b4', '#a0d5d1',
+                           '#84b3e4', '#3e7de0', '#b6bbdf', '#7d87b9',
+                           '#e07b91', '#e99ec5', '#f4c3dc'))+
+      theme(aspect.ratio = 2/1)+ 
+  theme(axis.text.x = element_text(angle = 90))+
+theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+      axis.title.y=element_blank(),
+      axis.text.y=element_blank())
+
+###Perform analysis for changes of proportion for e.g. Macro_1 across conditions
+
+table<-f[f$Celltype == "A_Macro_1",]
+
+###Directly compare two conditions
+
+table<-table[which(table$Site == "A_Healthy" | table$Site =="E_Psoriasis-lesion"),]
+
+
+nb = glm(formula = proportion ~ Stage, data = table, family=quasibinomial)
+
+summary(nb)
+
+anova(nb, test = "LRT")
+
+
