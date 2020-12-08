@@ -1,9 +1,15 @@
-# HCA Skin single cell analysis
+# Poised cell circuits in human skin are activated in disease
 
-This repository contains code used for the analysis of the Human Cell Atlas Skin samples *(Fletcher, Vegh, Reynolds et al., 2019, manuscript submitted).*
+This repository contains code used for the analysis of the Human Cell Atlas Skin samples bioRxiv *preprint doi: https://doi.org/10.1101/2020.11.05.369363.*
 
-Cellranger count matrix files were loaded into one object as described in the 'data' directory, then cells were subset into four major groups and analysed. Finally, cell type annotations and raw counts were exported and uploaded to ArrayExpress (E-MTAB-####).
+## Data
+Datasets analysed include: 10X data (Healthy adult Skin, PS skin, AD skin, fetal Skin), IHC for healthy and diseased skin, SS2 data, and healthy skin BCR-/TCR-enriched VDJ data.
 
-(https://github.com/haniffalab/scRNA-seq_analysis/releases/tag/v1.0.0), https://github.com/haniffalab/scRNA-seq_analysis), set up on the School of Computing Science HPC Facility, Newcastle University.
+## Analysis workflows
+Cellranger count matrix files for Healthy, AD and PS skin 10X data were loaded into one object as described in https://github.com/haniffalab/FCA_liver for downstream analysis. 
+
+Generalisable scripts are saved in the 'pipelines' directory. Please refer to pipelines/readme file for further information on the methods used for each pipeline. The figure panels created through use of each pipeline are detailed in readme file.
+
+Custom scripts written by IG and VEGP and GR unless otherwise stated.
 
 See [Human Cell Atlas](https://www.humancellatlas.org) for more details.
