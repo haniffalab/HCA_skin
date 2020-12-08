@@ -1,0 +1,492 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[1]:
+
+
+#%% Import
+import os.path
+import numpy as np
+import pandas as pd
+import scanpy as sc # v1.4.3
+import scrublet as scr
+import sys
+import bbknn
+from statsmodels import robust
+import sys
+import matplotlib.pyplot as plt
+import anndata as Anndata
+import scipy
+import scirpy as ir
+
+from scipy.spatial import distance as sc_distance
+from scipy.cluster import hierarchy as sc_hierarchy
+
+
+# In[2]:
+
+
+os.chdir('/home/ngr18/hcaskin/lymphoid_vdj/SKN8090532')
+a = ir.read_10x_vdj('all_contig_annotations.csv')
+a.obs.index = a.obs.index.astype(str) + '-SKN8090524'
+
+os.chdir('/home/ngr18/hcaskin/lymphoid_vdj/SKN8090533')
+b = ir.read_10x_vdj('all_contig_annotations.csv')
+b.obs.index = b.obs.index.astype(str) + '-SKN8090526'
+
+c = pd.concat([a.obs, b.obs])
+
+os.chdir('/home/ngr18/hcaskin/lymphoid_vdj/SKN8090534')
+a = ir.read_10x_vdj('all_contig_annotations.csv')
+a.obs.index = a.obs.index.astype(str) + '-SKN8090528'
+
+c = pd.concat([c, a.obs])
+
+os.chdir('/home/ngr18/hcaskin/lymphoid_vdj/SKN8090535')
+a = ir.read_10x_vdj('all_contig_annotations.csv')
+a.obs.index = a.obs.index.astype(str) + '-SKN8090530'
+
+c = pd.concat([c, a.obs])
+
+os.chdir('/home/ngr18/hcaskin/lymphoid_vdj/SKN8090544')
+a = ir.read_10x_vdj('all_contig_annotations.csv')
+a.obs.index = a.obs.index.astype(str) + '-SKN8090536'
+
+c = pd.concat([c, a.obs])
+
+os.chdir('/home/ngr18/hcaskin/lymphoid_vdj/SKN8090545')
+a = ir.read_10x_vdj('all_contig_annotations.csv')
+a.obs.index = a.obs.index.astype(str) + '-SKN8090538'
+
+c = pd.concat([c, a.obs])
+
+os.chdir('/home/ngr18/hcaskin/lymphoid_vdj/SKN8090546')
+a = ir.read_10x_vdj('all_contig_annotations.csv')
+a.obs.index = a.obs.index.astype(str) + '-SKN8090540'
+
+c = pd.concat([c, a.obs])
+
+os.chdir('/home/ngr18/hcaskin/lymphoid_vdj/SKN8090547')
+a = ir.read_10x_vdj('all_contig_annotations.csv')
+a.obs.index = a.obs.index.astype(str) + '-SKN8090542'
+
+c = pd.concat([c, a.obs])
+
+os.chdir('/home/ngr18/hcaskin/lymphoid_vdj/SKN8090556')
+a = ir.read_10x_vdj('all_contig_annotations.csv')
+a.obs.index = a.obs.index.astype(str) + '-SKN8090548'
+
+c = pd.concat([c, a.obs])
+
+os.chdir('/home/ngr18/hcaskin/lymphoid_vdj/SKN8090557')
+a = ir.read_10x_vdj('all_contig_annotations.csv')
+a.obs.index = a.obs.index.astype(str) + '-SKN8090550'
+
+c = pd.concat([c, a.obs])
+
+os.chdir('/home/ngr18/hcaskin/lymphoid_vdj/SKN8090558')
+a = ir.read_10x_vdj('all_contig_annotations.csv')
+a.obs.index = a.obs.index.astype(str) + '-SKN8090552'
+
+c = pd.concat([c, a.obs])
+
+os.chdir('/home/ngr18/hcaskin/lymphoid_vdj/SKN8090559')
+a = ir.read_10x_vdj('all_contig_annotations.csv')
+a.obs.index = a.obs.index.astype(str) + '-SKN8090554'
+
+c = pd.concat([c, a.obs])
+
+os.chdir('/home/ngr18/hcaskin/lymphoid_vdj/SKN8090568')
+a = ir.read_10x_vdj('all_contig_annotations.csv')
+a.obs.index = a.obs.index.astype(str) + '-SKN8090561'
+
+c = pd.concat([c, a.obs])
+
+os.chdir('/home/ngr18/hcaskin/lymphoid_vdj/SKN8090569')
+a = ir.read_10x_vdj('all_contig_annotations.csv')
+a.obs.index = a.obs.index.astype(str) + '-SKN8090561'
+
+c = pd.concat([c, a.obs])
+
+os.chdir('/home/ngr18/hcaskin/lymphoid_vdj/SKN8090570')
+a = ir.read_10x_vdj('all_contig_annotations.csv')
+a.obs.index = a.obs.index.astype(str) + '-SKN8090562'
+
+c = pd.concat([c, a.obs])
+
+os.chdir('/home/ngr18/hcaskin/lymphoid_vdj/SKN8090571')
+a = ir.read_10x_vdj('all_contig_annotations.csv')
+a.obs.index = a.obs.index.astype(str) + '-SKN8090563'
+
+c = pd.concat([c, a.obs])
+
+os.chdir('/home/ngr18/hcaskin/lymphoid_vdj/SKN8090572')
+a = ir.read_10x_vdj('all_contig_annotations.csv')
+a.obs.index = a.obs.index.astype(str) + '-SKN8090564'
+
+c = pd.concat([c, a.obs])
+
+os.chdir('/home/ngr18/hcaskin/lymphoid_vdj/SKN8090573')
+a = ir.read_10x_vdj('all_contig_annotations.csv')
+a.obs.index = a.obs.index.astype(str) + '-SKN8090565'
+
+c = pd.concat([c, a.obs])
+
+os.chdir('/home/ngr18/hcaskin/lymphoid_vdj/SKN8090574')
+a = ir.read_10x_vdj('all_contig_annotations.csv')
+a.obs.index = a.obs.index.astype(str) + '-SKN8090566'
+
+c = pd.concat([c, a.obs])
+
+os.chdir('/home/ngr18/hcaskin/lymphoid_vdj/SKN8090575')
+a = ir.read_10x_vdj('all_contig_annotations.csv')
+a.obs.index = a.obs.index.astype(str) + '-SKN8090567'
+
+c = pd.concat([c, a.obs])
+
+os.chdir('/home/ngr18/hcaskin/lymphoid_vdj/SKN8090584')
+a = ir.read_10x_vdj('all_contig_annotations.csv')
+a.obs.index = a.obs.index.astype(str) + '-SKN8090576'
+
+c = pd.concat([c, a.obs])
+
+os.chdir('/home/ngr18/hcaskin/lymphoid_vdj/SKN8090585')
+a = ir.read_10x_vdj('all_contig_annotations.csv')
+a.obs.index = a.obs.index.astype(str) + '-SKN8090578'
+
+c = pd.concat([c, a.obs])
+
+os.chdir('/home/ngr18/hcaskin/lymphoid_vdj/SKN8090586')
+a = ir.read_10x_vdj('all_contig_annotations.csv')
+a.obs.index = a.obs.index.astype(str) + '-SKN8090580'
+
+c = pd.concat([c, a.obs])
+
+os.chdir('/home/ngr18/hcaskin/lymphoid_vdj/SKN8090587')
+a = ir.read_10x_vdj('all_contig_annotations.csv')
+a.obs.index = a.obs.index.astype(str) + '-SKN8090582'
+
+c = pd.concat([c, a.obs])
+
+os.chdir('/home/ngr18/hcaskin/lymphoid_vdj/SKN8090596')
+a = ir.read_10x_vdj('all_contig_annotations.csv')
+a.obs.index = a.obs.index.astype(str) + '-SKN8090588'
+
+c = pd.concat([c, a.obs])
+
+os.chdir('/home/ngr18/hcaskin/lymphoid_vdj/SKN8090597')
+a = ir.read_10x_vdj('all_contig_annotations.csv')
+a.obs.index = a.obs.index.astype(str) + '-SKN8090590'
+
+c = pd.concat([c, a.obs])
+
+os.chdir('/home/ngr18/hcaskin/lymphoid_vdj/SKN8090598')
+a = ir.read_10x_vdj('all_contig_annotations.csv')
+a.obs.index = a.obs.index.astype(str) + '-SKN8090592'
+
+c = pd.concat([c, a.obs])
+
+os.chdir('/home/ngr18/hcaskin/lymphoid_vdj/SKN8090599')
+a = ir.read_10x_vdj('all_contig_annotations.csv')
+a.obs.index = a.obs.index.astype(str) + '-SKN8090594'
+
+c = pd.concat([c, a.obs])
+
+os.chdir('/home/ngr18/hcaskin/lymphoid_vdj/SKN8090608')
+a = ir.read_10x_vdj('all_contig_annotations.csv')
+a.obs.index = a.obs.index.astype(str) + '-SKN8090600'
+
+c = pd.concat([c, a.obs])
+
+os.chdir('/home/ngr18/hcaskin/lymphoid_vdj/SKN8090609')
+a = ir.read_10x_vdj('all_contig_annotations.csv')
+a.obs.index = a.obs.index.astype(str) + '-SKN8090602'
+
+c = pd.concat([c, a.obs])
+
+os.chdir('/home/ngr18/hcaskin/lymphoid_vdj/SKN8090610')
+a = ir.read_10x_vdj('all_contig_annotations.csv')
+a.obs.index = a.obs.index.astype(str) + '-SKN8090604'
+
+c = pd.concat([c, a.obs])
+
+os.chdir('/home/ngr18/hcaskin/lymphoid_vdj/SKN8090611')
+a = ir.read_10x_vdj('all_contig_annotations.csv')
+a.obs.index = a.obs.index.astype(str) + '-SKN8090606'
+
+c = pd.concat([c, a.obs])
+
+os.chdir('/home/ngr18/hcaskin/lymphoid_vdj/SKN8104898')
+a = ir.read_10x_vdj('all_contig_annotations.csv')
+a.obs.index = a.obs.index.astype(str) + '-SKN8104896'
+
+c = pd.concat([c, a.obs])
+
+os.chdir('/home/ngr18/hcaskin/lymphoid_vdj/SKN8104903')
+a = ir.read_10x_vdj('all_contig_annotations.csv')
+a.obs.index = a.obs.index.astype(str) + '-SKN8104902'
+
+c = pd.concat([c, a.obs])
+
+os.chdir('/home/ngr18/hcaskin/lymphoid_vdj/SKN8105196')
+a = ir.read_10x_vdj('all_contig_annotations.csv')
+a.obs.index = a.obs.index.astype(str) + '-SKN8105194'
+
+c = pd.concat([c, a.obs])
+
+os.chdir('/home/ngr18/hcaskin/lymphoid_vdj/SKN8105201')
+a = ir.read_10x_vdj('all_contig_annotations.csv')
+a.obs.index = a.obs.index.astype(str) + '-SKN8105200'
+
+c = pd.concat([c, a.obs])
+
+
+# In[218]:
+
+
+###Import lymphoid gene expression data
+os.chdir('/home/ngr18/hcaskin/lymph_analysis')
+lymph = sc.read_h5ad('lymph.h5ad')
+
+###Append TCR data to the lymphoid anndata object
+g = lymph.obs.join(c, how='left')
+lymph.obs = g
+
+
+# In[116]:
+
+
+###Subset to donors with TCR data
+lymph = lymph[lymph.obs['donor_id'].isin(['S4', 'S5', 'E1', 'E2', 'E3', 'E4', 'P1', 'P2', 'P3'])]
+
+
+# In[180]:
+
+
+###TCR quality control
+ir.tl.chain_pairing(lymph)
+
+ir.pl.group_abundance(
+    lymph, groupby="chain_pairing", target_col="Status",
+)
+
+print("Fraction of cells with more than one pair of TCRs: {:.2f}".format(
+    np.sum(lymph.obs["chain_pairing"].isin(["Extra beta", "Extra alpha", "Two full chains"])) / lymph.n_obs
+))
+
+###Remove T cells with multiple TCR chains
+lymph = lymph[lymph.obs["multi_chain"] != "True", :].copy()
+
+
+# 
+# ***Define clonotypes***
+# 
+# 
+
+# In[158]:
+
+
+###Define clonotypes- cutoff of 10
+ir.pp.tcr_neighbors(lymph, cutoff=10, receptor_arms="all", dual_tcr="all")
+ir.tl.define_clonotypes(lymph, partitions="connected")
+ir.tl.clonotype_network(lymph, min_size=4)
+
+
+# In[5]:
+
+
+###Limit to T cells
+lymph = lymph[lymph.obs['anno_final'].isin(['Th', 'Tc', 'Treg', 'Tc IL13 IL22', 'Tc17_Th17'])]
+
+lymph_test.obs['full'] = (lymph_test.obs['Status'].astype(str) + '_' 
+                          + lymph_test.obs['Site'].astype(str) + '_' 
+                          + lymph_test.obs['anno_final'].astype(str) +'_' 
+                          + lymph_test.obs['Tissue'].astype(str))
+                          
+ir.tl.clonal_expansion(lymph)
+
+
+# 
+# 
+# ***Separated by disease***
+# 
+
+# In[5]:
+
+
+###Analysis of psoriasis T cells
+
+lymph_psoriasis = lymph[lymph.obs['anno_final'].isin(['Th', 'Tc', 'Treg', 'Tc IL13 IL22', 'Tc17_Th17'])]
+lymph_psoriasis = lymph_psoriasis[lymph_psoriasis.obs['Status'].isin(['Psoriasis'])]
+lymph_psoriasis = lymph_psoriasis[lymph_psoriasis.obs['Site'].isin(['lesion'])]
+
+
+lymph_psoriasis.obs['full'] = (lymph_psoriasis.obs['Status'].astype(str) + '_' + 
+lymph_psoriasis.obs['Site'].astype(str) + '_' + lymph_psoriasis.obs['anno_final'].astype(str))
+
+###Relabel to reorder
+lymph_psoriasis.obs['full_barplot'] = lymph_psoriasis.obs['full']
+
+lymph_psoriasis.obs.replace({'full_barplot':'Psoriasis_lesion_Th'},'A_Psoriasis_lesion_Th', inplace=True)
+lymph_psoriasis.obs.replace({'full_barplot':'Psoriasis_lesion_Treg'},'B_Psoriasis_lesion_Treg', inplace=True)
+lymph_psoriasis.obs.replace({'full_barplot':'Psoriasis_lesion_Tc'},'C_Psoriasis_lesion_Tc', inplace=True)
+lymph_psoriasis.obs.replace({'full_barplot':'Psoriasis_lesion_Tc17_Th17'},'D_Psoriasis_lesion_Tc17_Th17', inplace=True)
+
+
+###Plot Figure 4G
+os.chdir('/home/ngr18/hcaskin/lymph_analysis')
+
+ir.pl.clonal_expansion(lymph_psoriasis, groupby = "full_barplot", clip_at=10)
+
+fig = plt.gcf()
+fig.set_size_inches(4, 4)
+fig.savefig('psoriasis_clonality.png', dpi=100)
+
+
+# In[27]:
+
+
+
+
+
+# In[102]:
+
+
+###Calculate alpha diversity
+ax = ir.pl.alpha_diversity(lymph_psoriasis, groupby="full_barplot")
+
+fig = plt.gcf()
+fig.set_size_inches(4, 4)
+fig.savefig('psoriasis_diversity.png', dpi=100)
+
+
+# In[112]:
+
+
+###Export data for plotting in R
+###Clonal expansion
+a = ir.tl.summarize_clonal_expansion(lymph_psoriasis, groupby = "full_barplot", clip_at=10)
+
+###Clonality
+a = lymph_psoriasis.obs[['clonotype_size', 'alpha_diversity_clonotype', 'full_barplot']]
+a.to_csv('psoriasis_clonality.csv')
+
+###Diversity
+a = lymph_psoriasis.obs[['alpha_diversity_clonotype', 'full_barplot', 'donor_id']]
+a.to_csv('psoriasis_diversity.csv')
+
+
+# In[14]:
+
+
+###Analysis of AD T cells
+
+lymph_eczema = lymph[lymph.obs['anno_final'].isin(['Th', 'Tc', 'Treg', 'Tc IL13 IL22', 'Tc17_Th17'])]
+lymph_eczema = lymph_eczema[lymph_eczema.obs['Status'].isin(['Eczema'])]
+lymph_eczema = lymph_eczema[lymph_eczema.obs['Site'].isin(['lesion'])]
+
+lymph_eczema.obs['full'] = (lymph_eczema.obs['Status'].astype(str) + '_' + 
+lymph_eczema.obs['Site'].astype(str) + '_' + lymph_eczema.obs['anno_final'].astype(str))
+
+
+###Relabel for bargraph
+
+lymph_eczema.obs['full_barplot'] = lymph_eczema.obs['full']
+
+lymph_eczema.obs.replace({'full_barplot':'Eczema_lesion_Th'},'A_eczema_lesion_Th', inplace=True)
+lymph_eczema.obs.replace({'full_barplot':'Eczema_lesion_Treg'},'B_eczema_lesion_Treg', inplace=True)
+lymph_eczema.obs.replace({'full_barplot':'Eczema_lesion_Tc'},'C_eczema_lesion_Tc', inplace=True)
+lymph_eczema.obs.replace({'full_barplot':'Eczema_lesion_Tc IL13 IL22'},'D_eczema_lesion_Tc IL13 IL22', inplace=True)
+
+
+###Export plot for figure 4G
+os.chdir('/home/ngr18/hcaskin/lymph_analysis')
+
+ir.pl.clonal_expansion(lymph_eczema, groupby = "full_barplot", clip_at=10)
+
+fig = plt.gcf()
+fig.set_size_inches(4, 4)
+fig.savefig('eczema_clonality.png', dpi=100)
+
+
+# In[ ]:
+
+
+
+
+
+# In[120]:
+
+
+ir.tl.alpha_diversity(lymph_eczema, groupby="full_barplot")
+ax = ir.pl.alpha_diversity(lymph_eczema, groupby="full_barplot")
+
+fig = plt.gcf()
+fig.set_size_inches(4, 4)
+fig.savefig('eczema_diversity.png', dpi=100)
+
+
+# In[121]:
+
+
+###Export data for plotting in R
+a = ir.tl.clonal_expansion(lymph_eczema, groupby = "full_barplot", clip_at=2)
+a.to_csv
+
+a = lymph_eczema.obs[['clonotype_size', 'alpha_diversity_clonotype', 'full_barplot']]
+a.to_csv('eczema_clonality.csv')
+
+a = lymph_eczema.obs[['alpha_diversity_clonotype', 'full_barplot', 'donor_id']]
+a.to_csv('eczema_diversity.csv')
+
+
+# In[4]:
+
+
+###Plotting gene expression by clonal populations - AD
+
+os.chdir('/home/ngr18/hcaskin/lymph_analysis')
+lymph = sc.read_h5ad('lymph_vdj_cutoff10.h5ad')
+
+lymph.obs['clones'] = np.where(lymph.obs['clonotype_size']>=2, 'yes', 'no')
+
+lymph = lymph[lymph.obs['anno_final'].isin(['Tc', 'Th', 'Treg', 'Tc IL13 IL22', 'Tc17_Th17'])]
+
+
+disease = lymph[lymph.obs['Status'].isin(['Eczema'])]
+disease = disease[disease.obs['Site'].isin(['lesion'])]
+disease = disease[disease.obs['Tissue'].isin(['Dermis'])]
+disease = disease[disease.obs['anno_final'].isin(['Tc', 'Th', 'Treg', 'Tc IL13 IL22'])]
+
+disease.obs['full'] = disease.obs['anno_final'].astype(str) + '_' + disease.obs['clones'].astype(str)
+
+
+# In[17]:
+
+
+###Plot figure 4G
+
+os.chdir('/home/ngr18/hcaskin/lymphoid_vdj')
+sc.pl.dotplot(disease, ['IL22', 'IL17A','CD63', 'TNFRSF18', 'JAML', 'EVL', 'LAT', 'LCK', 'JAK1'], 
+              groupby='full', log=False,
+
+              standard_scale='var', use_raw=True, color_map='Reds', save = 'clonal_eczema_Tcells.png')
+
+
+# In[10]:
+
+
+###Plotting gene expression by clonal populations - psoriasis
+
+disease = lymph[lymph.obs['Status'].isin(['Psoriasis'])]
+disease = disease[disease.obs['Site'].isin(['lesion'])]
+disease = disease[disease.obs['Tissue'].isin(['Epidermis'])]
+disease = disease[disease.obs['anno_final'].isin(['Tc', 'Th', 'Treg', 'Tc17_Th17'])]
+
+disease.obs['full'] = disease.obs['anno_final'].astype(str) + '_' + disease.obs['clones'].astype(str)
+
+os.chdir('/home/ngr18/hcaskin/lymphoid_vdj')
+sc.pl.dotplot(disease, ['IL22', 'IL17A','CD63', 'TNFRSF18', 'JAML', 'EVL', 'LAT', 'LCK', 'JAK1'], 
+              groupby='full', log=False,
+             standard_scale='var', use_raw=True, color_map='Reds', save = 'clonal_psoriasis_Tcells.png')
+

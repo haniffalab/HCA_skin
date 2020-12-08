@@ -1,0 +1,98 @@
+library(ggplot2)
+library(reshape2)
+library(stringr)
+library(reshape2)
+library(MASS)
+library(tidyr)
+library(useful)
+library(Seurat)
+
+###Convert mouse to human genes
+
+require("biomaRt")
+human = useMart("ensembl", dataset = "hsapiens_gene_ensembl")
+
+genesV2 = getLDS(attributes = c("mgi_symbol"), filters = "external_gene_name", 
+                 values = row.names(merad_signature), mart = human, 
+                 attributesL = c("external_gene_name"), martL = human, uniqueRows=T)
+
+require("biomaRt")
+human = useMart("ensembl", dataset = "hsapiens_gene_ensembl")
+mouse = useMart("ensembl", dataset = "mmusculus_gene_ensembl")
+genesV2 = getLDS(attributes = c("mgi_symbol"), filters = "external_gene_name", values = row.names(YOUR_GENE_LIST), mart = mouse, attributesL = c("external_gene_name"), martL = human, uniqueRows=T)
+
+setwd("/home/ngr18/hcaskin/DC_analysis/")
+DCs<-readRDS("DCs.RDS")
+
+setwd("/home/ngr18/hcaskin/Other_datasets/")
+
+thymus<-read.csv("thymus_mig_DC_markers.csv")
+thymus<-thymus[thymus$p_val_adj<0.05,]
+thymus_markers<-list(thymus$X)
+
+tonsil_CCR7_markers<-read.csv("./tonsil_CCR7_markers.csv", header=TRUE, row.names=1)
+tonsil_CCR7_markers$gene<-row.names(tonsil_CCR7_markers)
+tonsil_CCR7_markers<-tonsil_CCR7_markers[!(tonsil_CCR7_markers$p_val_adj>0.05),]
+tonsil_CCR7_markers<-list(tonsil_CCR7_markers$gene)
+
+ascites_CCR7_markers<-read.csv("./ascites_CCR7_markers.csv", header=TRUE, row.names=1)
+ascites_CCR7_markers$gene<-row.names(ascites_CCR7_markers)
+ascites_CCR7_markers<-ascites_CCR7_markers[!(ascites_CCR7_markers$p_val_adj>0.05),]
+ascites_CCR7_markers<-list(ascites_CCR7_markers$gene)
+
+SF_CCR7_markers<-read.csv("./SF_subset_markers.csv", header=TRUE, row.names=1)
+SF_CCR7_markers<-subset(SF_CCR7_markers, cluster == "7")
+
+SF_CCR7_markers<-SF_CCR7_markers[!(SF_CCR7_markers$p_val_adj>0.05),]
+SF_CCR7_markers<-list(SF_CCR7_markers$gene)
+
+
+
+DCs<-AddModuleScore(object=DCs, features = tonsil_CCR7_markers, ctrl.size=5, name='tonsil_CCR7')
+
+DCs<-AddModuleScore(object=DCs, features = ascites_CCR7_markers, ctrl.size=5, name='ascites_CCR7')
+
+DCs<-AddModuleScore(object=DCs, features = SF_CCR7_markers, ctrl.size=5, name='SF_CCR7')
+
+DCs<-AddModuleScore(object=DCs, features = lung_CCR7, ctrl.size=5, name='Merad')
+
+DCs<-AddModuleScore(object=DCs, features = thymus_markers, ctrl.size=5, name='thymus')
+
+
+scores<-data.frame(DCs@meta.data$anno_final, DCs@meta.data$tonsil_CCR71, DCs@meta.data$SF_CCR71, 
+                   DCs@meta.data$ascites_CCR71, DCs@meta.data$Merad1, DCs@meta.data$thymus1)
+colnames(scores)<-c("anno_final", "tonsil", "SF", "ascites", "merad", "thymus")
+a<-aggregate(.~anno_final, data = scores, FUN=median)
+row.names(a)<-a$anno_final
+a$anno_final<-NULL
+scaled.dat <- scale(a)
+b<-melt(scaled.dat, by = anno_final)
+colnames(b)<-c("anno_final", "variable", "value")
+
+b$anno_final <- factor(b$anno_final, levels = rev(c("DC1", "DC2", "MigDC", "LC_1", "LC_2", "LC_3", "LC_4",
+                                                   "moDC_1", "moDC_2", "moDC_3")))
+
+
+ggplot(b, aes(x=variable, y=anno_final, color=as.numeric(value), size=value, alpha=value)) + geom_point()+
+  scale_color_viridis_c() +
+  scale_size_area(max_size = 10) +
+  theme_bw() + theme(legend.position="none") +
+  theme(axis.line = element_blank(),           
+        axis.title = element_blank(),          
+        panel.border = element_blank(),         
+        panel.grid.major.x = element_blank(),   
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor=element_blank(),
+        panel.grid.major=element_blank(),
+        aspect.ratio = 2/1,
+        axis.text.x = element_text(angle = 90))+
+
+theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+theme(legend.position="none")
+
+
+setwd("/home/ngr18/hcaskin/DC_analysis/")
+
+ggsave("DC_enrichment_scores_unlabelled.png", plot = last_plot(), device = NULL, path = NULL,width = 4, 
+       height = 4,
+  scale = 1)

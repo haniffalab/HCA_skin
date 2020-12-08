@@ -1,0 +1,169 @@
+import numpy as np 
+import pandas as pd 
+import scanpy as sc
+import sys 
+from statsmodels import robust 
+import sys 
+import matplotlib.pyplot as plt 
+import os.path
+import scipy as sci
+import anndata
+from sklearn.svm import NuSVR
+
+from autogenes import AutoGenes
+ag = AutoGenes(np.identity(2))
+
+os.chdir('/home/ngr18/hcaskin/reclustering')
+adata = sc.read_h5ad('reclustered.h5ad')
+
+
+adata.obs.replace({'combined':'LC_1'},'LC', inplace=True)  #1
+adata.obs.replace({'combined':'LC_2'},'LC', inplace=True)  #1
+adata.obs.replace({'combined':'LC_3'},'LC', inplace=True)  #1
+adata.obs.replace({'combined':'LC_4'},'LC', inplace=True)  #1
+
+adata.obs.replace({'combined':'moDC_1'},'moDC', inplace=True)  #1
+adata.obs.replace({'combined':'moDC_2'},'moDC', inplace=True)  #1
+adata.obs.replace({'combined':'moDC_3'},'moDC', inplace=True)  #1
+
+adata=adata[adata.obs['combined'].isin(['C_Melanocyte', 'DC1', 'DC2', 'F1', 'F2', 'F3', 'ILC1', 'ILC1_NK',
+       'ILC2_3', 'Inf_mono', 'LC_1', 'LC_2', 'LC_3', 'LC_4', 'LE1', 'LE2',
+       'M_A_Mast_cell', 'Macro_1', 'Macro_2', 'MigDC', 'Mono', 'NK',
+       'Pericyte_1_non_inflamm', 'Pericyte_2_inflamm', 'Plasma',
+       'Post_proliferation_KC', 'Post_proliferation_KC*',
+       'Pre_proliferation_KC', 'Proliferating_KC',
+       'Schwaan_1_Stroma_Schwan_myelinating', 'Schwaan_2_non_myelinating',
+       'Tc', 'Tc IL13 IL22', 'Tc17_Th17', 'Th', 'Treg', 'VE1', 'VE2', 'VE3',
+       'moDC_1', 'moDC_2', 'moDC_3', 'LC', 'moDC'])]
+
+adata_norm = sc.pp.normalize_per_cell(adata, counts_per_cell_after=1e4, copy=True) 
+adata_log = sc.pp.log1p(adata_norm, copy=True) 
+sc.pp.highly_variable_genes(adata_log, flavor='cell_ranger', n_top_genes=4000)
+
+###Manually include genes included in DEGs for complex subsets (e.g. Mac1 vs Mac2, VE1 vs VE2 vs VE3)
+
+adata_log.var['highly_variable']['ACKR1C1'] = "True"
+adata_log.var['highly_variable']['PLIN2'] = "True"
+adata_log.var['highly_variable']['BNIP3L'] = "True"
+adata_log.var['highly_variable']['FTH1'] = "True"
+adata_log.var['highly_variable']['CTSL'] = "True"
+adata_log.var['highly_variable']['FKBP1A'] = "True"
+adata_log.var['highly_variable']['EDNRB'] = "True"
+adata_log.var['highly_variable']['SQSTM1'] = "True"
+adata_log.var['highly_variable']['PRKAR1A'] = "True"
+adata_log.var['highly_variable']['SOD2'] = "True"
+adata_log.var['highly_variable']['GSTO1'] = "True"
+adata_log.var['highly_variable']['CHCHD2'] = "True"
+adata_log.var['highly_variable']['ANXA5'] = "True"
+adata_log.var['highly_variable']['FTL'] = "True"
+adata_log.var['highly_variable']['PRDX1'] = "True"
+adata_log.var['highly_variable']['TUBA1C'] = "True"
+adata_log.var['highly_variable']['NDUFS2'] = "True"
+adata_log.var['highly_variable']['NQO1'] = "True"
+adata_log.var['highly_variable']['CAPZB'] = "True"
+adata_log.var['highly_variable']['TPI1'] = "True"
+adata_log.var['highly_variable']['SEC61G'] = "True"
+adata_log.var['highly_variable']['ENO1'] = "True"
+adata_log.var['highly_variable']['MEDAG'] = "True"
+adata_log.var['highly_variable']['SDCBP'] = "True"
+adata_log.var['highly_variable']['FAM96B'] = "True"
+adata_log.var['highly_variable']['PRMT1'] = "True"
+adata_log.var['highly_variable']['NHRNPA2B1'] = "True"
+adata_log.var['highly_variable']['PTGES'] = "True"
+adata_log.var['highly_variable']['SELENOM'] = "True"
+adata_log.var['highly_variable']['TMBIM6'] = "True"
+adata_log.var['highly_variable']['HLA-A'] = "True"
+adata_log.var['highly_variable']['MIF'] = "True"
+adata_log.var['highly_variable']['PSMD8'] = "True"
+adata_log.var['highly_variable']['GYPC'] = "True"
+adata_log.var['highly_variable']['SLC43A3'] = "True"
+adata_log.var['highly_variable']['SNRPG'] = "True"
+adata_log.var['highly_variable']['NDUFC2'] = "True"
+adata_log.var['highly_variable']['HIPK2'] = "True"
+adata_log.var['highly_variable']['TUBA1B'] = "True"
+adata_log.var['highly_variable']['HINT1'] = "True"
+adata_log.var['highly_variable']['PSMA7'] = "True"
+adata_log.var['highly_variable']['HMOX1'] = "True"
+adata_log.var['highly_variable']['ATP6AP2'] = "True"
+adata_log.var['highly_variable']['ATP6V0E1'] = "True"
+adata_log.var['highly_variable']['HTATIP2'] = "True"
+adata_log.var['highly_variable']['PSMB1'] = "True"
+adata_log.var['highly_variable']['TNFAIP6'] = "True"
+adata_log.var['highly_variable']['WIPI1'] = "True"
+
+
+adata_log.var['highly_variable']['RGS16'] = "True"
+adata_log.var['highly_variable']['MT1A'] = "True"
+adata_log.var['highly_variable']['MYL9'] = "True"
+adata_log.var['highly_variable']['MT1M'] = "True"
+adata_log.var['highly_variable']['ZFP36'] = "True"
+adata_log.var['highly_variable']['ACTA2'] = "True"
+adata_log.var['highly_variable']['TAGLN'] = "True"
+adata_log.var['highly_variable']['S100A4'] = "True"
+adata_log.var['highly_variable']['ADIRF'] = "True"
+adata_log.var['highly_variable']['SOCS3'] = "True"
+adata_log.var['highly_variable']['MYH11'] = "True"
+adata_log.var['highly_variable']['GADD45B'] = "True"
+adata_log.var['highly_variable']['HSPA1B'] = "True"
+adata_log.var['highly_variable']['HSPA1A'] = "True"
+adata_log.var['highly_variable']['HSPB1'] = "True"
+adata_log.var['highly_variable']['DUSP1'] = "True"
+adata_log.var['highly_variable']['DNAJB1'] = "True"
+adata_log.var['highly_variable']['TPM1'] = "True"
+adata_log.var['highly_variable']['CRIP1'] = "True"
+adata_log.var['highly_variable']['JUNB'] = "True"
+adata_log.var['highly_variable']['ATF3'] = "True"
+adata_log.var['highly_variable']['TPM2'] = "True"
+adata_log.var['highly_variable']['FLNA'] = "True"
+adata_log.var['highly_variable']['TINAGL1'] = "True"
+adata_log.var['highly_variable']['ACTG1'] = "True"
+adata_log.var['highly_variable']['BGN'] = "True"
+adata_log.var['highly_variable']['SPARC'] = "True"
+adata_log.var['highly_variable']['SH3BRGL'] = "True"
+adata_log.var['highly_variable']['RBM3'] = "True"
+adata_log.var['highly_variable']['SPARCL1'] = "True"
+adata_log.var['highly_variable']['TIMP3'] = "True"
+adata_log.var['highly_variable']['PTMS'] = "True"
+adata_log.var['highly_variable']['IGFBP7'] = "True"
+adata_log.var['highly_variable']['VIM'] = "True"
+adata_log.var['highly_variable']['S100A6'] = "True"
+adata_log.var['highly_variable']['RPL37'] = "True"
+adata_log.var['highly_variable']['RPL34'] = "True"
+adata_log.var['highly_variable']['JAG1'] = "True"
+adata_log.var['highly_variable']['CHCHD10'] = "True"
+adata_log.var['highly_variable']['PPDPF'] = "True"
+adata_log.var['highly_variable']['IGFBP4'] = "True"
+adata_log.var['highly_variable']['CRTAP'] = "True"
+adata_log.var['highly_variable']['AHNAK'] = "True"
+adata_log.var['highly_variable']['FRZB'] = "True"
+adata_log.var['highly_variable']['CSRP1'] = "True"
+adata_log.var['highly_variable']['FOS'] = "True"
+adata_log.var['highly_variable']['PPP1R14A'] = "True"
+adata_log.var['highly_variable']['POSTN'] = "True"
+adata_log.var['highly_variable']['RPL22'] = "True"
+adata_log.var['highly_variable']['CEBPD'] = "True"
+
+
+adata_proc = adata_norm[:, adata_log.var[adata_log.var['highly_variable']==True].index]
+
+adata_proc = adata_proc[adata_log.obs_names]
+
+adata_proc.obs['index'] = adata_proc.obs.index
+adata_proc.obs["new"] = adata_proc.obs["combined"].astype('str') + '_' + adata_proc.obs['index'].astype('str')
+adata_proc.obs_names = adata_proc.obs.new
+adata_proc.obs_names = adata_proc.obs_names.astype('str')
+
+adata.obs.combined = adata.obs.combined.astype('category')
+clusters = adata.obs.combined.cat.categories
+clusters = clusters.values
+sc_mean = pd.DataFrame(index=adata_proc.var_names, columns=clusters)
+
+for cluster in clusters:
+    cells = [x for x in adata_proc.obs_names if x.startswith(cluster)]
+    sc_part = adata_proc[cells,:].X.T
+    sc_mean[cluster] = pd.DataFrame(np.mean(sc_part,axis=1),index=adata_proc.var_names)
+
+os.chdir('/home/ngr18/hcaskin/theis_decon')
+
+centroids_sc_hv = sc_mean
+centroids_sc_hv.to_csv("full_centroids_reclustered.csv")

@@ -1,0 +1,116 @@
+library(Seurat)
+library(dplyr)
+library(reticulate)
+library(Matrix)
+library(stringr)
+library(readr)
+library(harmony)
+library(dplyr)
+library(reshape)
+library(ggplot2)
+library(useful)
+library(loomR)
+library(cowplot)
+
+
+setwd('/home/ngr18/hcaskin/Other_datasets/adult_skin')
+
+adult_healthy<-readRDS("macro_healthy.RDS")
+adult_eczema<-readRDS("macro_eczema.RDS")
+adult_psoriasis<-readRDS("macro_psoriasis.RDS")
+
+adult_healthy <- NormalizeData(adult_healthy, normalization.method = "LogNormalize", scale.factor = 10000)
+adult_healthy <- FindVariableFeatures(adult_healthy, selection.method = "vst", nfeatures = 2000)
+
+adult_eczema <- NormalizeData(adult_eczema, normalization.method = "LogNormalize", scale.factor = 10000)
+adult_eczema <- FindVariableFeatures(adult_eczema, selection.method = "vst", nfeatures = 2000)
+
+adult_psoriasis <- NormalizeData(adult_psoriasis, normalization.method = "LogNormalize", scale.factor = 10000)
+adult_psoriasis <- FindVariableFeatures(adult_psoriasis, selection.method = "vst", nfeatures = 2000)
+
+setwd('/home/ngr18/hcaskin/Other_datasets/fetal_skin')
+fetal_skin <- readRDS("fetal_skin_mac.RDS")
+
+setwd('/home/ngr18/hcaskin/Other_datasets/kidney')
+fetal_kidney <- readRDS("fetal_kidney_macro.RDS")
+
+setwd("/home/ngr18/hcaskin/Other_datasets/liver")
+fetal_liver<-readRDS("liver_macro.RDS")
+
+setwd("/home/ngr18/hcaskin/Other_datasets/fetal_gut")
+fetal_gut<-readRDS("gut_macro.RDS")
+
+setwd('/home/ngr18/hcaskin/Other_datasets/thymus')
+fetal_thymus<-readRDS("thymus_macro.RDS")
+
+adult_healthy$predicted.id <- adult_healthy$anno_final
+
+fetal_skin@meta.data$Status<-"skin"
+fetal_liver@meta.data$Status<-"liver"
+fetal_kidney@meta.data$Status<-"kidney"
+fetal_gut@meta.data$Status<-"gut"
+fetal_thymus@meta.data$Status<-"thymus"
+
+fetal_skin@meta.data$Site<-"fetal"
+fetal_liver@meta.data$Site<-"fetal"
+fetal_kidney@meta.data$Site<-"fetal"
+fetal_gut@meta.data$Site<-"fetal"
+fetal_thymus@meta.data$Site<-"fetal"
+
+setwd('/home/ngr18/hcaskin/Other_datasets/adult_skin')
+saveRDS(adult_healthy, "macro_healthy_scored.RDS")
+
+anchors <- FindTransferAnchors(reference = adult_healthy, query = adult_eczema, 
+    dims = 1:30)
+predictions <- TransferData(anchorset = anchors, refdata = adult_healthy$anno_final, 
+    dims = 1:30)
+adult_eczema <- AddMetaData(adult_eczema, metadata = predictions)
+saveRDS(adult_eczema, "macro_eczema_scored.RDS")
+
+anchors <- FindTransferAnchors(reference = adult_healthy, query = adult_psoriasis,
+    dims = 1:30)
+predictions <- TransferData(anchorset = anchors, refdata = adult_healthy$anno_final,
+    dims = 1:30)
+adult_psoriasis <- AddMetaData(adult_psoriasis, metadata = predictions)
+saveRDS(adult_psoriasis, "macro_psoriasis_scored.RDS")
+
+setwd('/home/ngr18/hcaskin/Other_datasets/fetal_skin')
+anchors <- FindTransferAnchors(reference = adult_healthy, query = fetal_skin,
+    dims = 1:30)
+predictions <- TransferData(anchorset = anchors, refdata = adult_healthy$anno_final,
+    dims = 1:30)
+fetal_skin <- AddMetaData(fetal_skin, metadata = predictions)
+saveRDS(fetal_skin, "fetal_skin_mac_scored.RDS")
+
+setwd('/home/ngr18/hcaskin/Other_datasets/fetal_gut')
+anchors <- FindTransferAnchors(reference = adult_healthy, query = fetal_gut,
+    dims = 1:30)
+predictions <- TransferData(anchorset = anchors, refdata = adult_healthy$anno_final,
+    dims = 1:30)
+fetal_gut <- AddMetaData(fetal_gut, metadata = predictions)
+saveRDS(fetal_gut, "fetal_gut_mac_scored.RDS")
+
+setwd('/home/ngr18/hcaskin/Other_datasets/kidney')
+anchors <- FindTransferAnchors(reference = adult_healthy, query = fetal_kidney,
+    dims = 1:30)
+predictions <- TransferData(anchorset = anchors, refdata = adult_healthy$anno_final,
+    dims = 1:30)
+fetal_kidney <- AddMetaData(fetal_kidney, metadata = predictions)
+saveRDS(fetal_kidney, "fetal_kidney_mac_scored.RDS")
+
+
+setwd('/home/ngr18/hcaskin/Other_datasets/liver')
+anchors <- FindTransferAnchors(reference = adult_healthy, query = fetal_liver,
+    dims = 1:30)
+predictions <- TransferData(anchorset = anchors, refdata = adult_healthy$anno_final,
+    dims = 1:30)
+fetal_liver <- AddMetaData(fetal_liver, metadata = predictions)
+saveRDS(fetal_liver, "fetal_liver_mac_scored.RDS")
+
+setwd('/home/ngr18/hcaskin/Other_datasets/thymus')
+anchors <- FindTransferAnchors(reference = adult_healthy, query = fetal_thymus,
+    dims = 1:30)
+predictions <- TransferData(anchorset = anchors, refdata = adult_healthy$anno_final,
+    dims = 1:30)
+fetal_thymus <- AddMetaData(fetal_thymus, metadata = predictions)
+saveRDS(fetal_thymus, "fetal_thymus_mac_scored.RDS")
