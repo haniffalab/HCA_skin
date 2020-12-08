@@ -1,0 +1,30 @@
+import numpy as np
+import pandas as pd
+import scanpy as sc
+import sys
+from statsmodels import robust
+import sys
+from scipy import sparse, io
+import matplotlib.pyplot as plt
+import os.path
+import scipy as sci
+import anndata
+
+os.chdir('/home/ngr18/hcaskin/raw_data/annotations')
+adata = sc.read_h5ad('complete_annotated.h5ad')
+
+genes = adata.var.copy()
+genes['gene_short_name'] = genes.index
+genes[['gene_short_name']].to_csv('NAME_genes.csv', header=True)
+
+a = adata.obs.index
+a = pd.DataFrame(a)
+a.to_csv('NAME_cell_names.csv')
+
+c_sparse = adata.X.transpose()
+c_sparse = c_sparse.astype(int)
+
+io.mmwrite('NAME_counts.mtx', c_sparse)
+
+metadata = adata.obs
+metadata.to_csv('NAME_metadata.csv')

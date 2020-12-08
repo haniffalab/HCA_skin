@@ -1,0 +1,71 @@
+import numpy as np 
+import pandas as pd 
+import scanpy as sc
+import sys 
+from statsmodels import robust 
+import sys 
+import matplotlib.pyplot as plt 
+import os.path
+import scipy as sci
+import anndata
+from sklearn.svm import NuSVR
+
+from autogenes import AutoGenes
+ag = AutoGenes(np.identity(2))
+
+
+os.chdir('/home/ngr18/hcaskin/theis_decon')
+
+centroids_sc_hv = pd.read_csv('full_centroids_reclustered.csv', index_col = 0)
+healthy_ag = AutoGenes(centroids_sc_hv.T)
+
+healthy_ag.run(ngen=5000,seed=0,nfeatures=400,mode='fixed')
+
+pareto = healthy_ag.pareto
+len(pareto)
+
+centroids_sc_pareto = centroids_sc_hv[pareto[len(pareto)-1]] # the solution with min correlation
+centroids_sc_pareto.shape
+
+os.chdir('/home/ngr18/hcaskin/theis_decon')
+data_bulk_raw = pd.read_csv('bulk_data.txt', sep = '\t')
+data_bulk_raw = data_bulk_raw.set_index('Gene')
+
+data_bulk_proc = data_bulk_raw.loc[centroids_sc_pareto.index,:]
+data_bulk_proc = data_bulk_proc.dropna(axis='rows')
+centroids_sc_pareto = centroids_sc_pareto.loc[data_bulk_proc.index,:]
+
+b = anndata.AnnData(X=data_bulk_proc)
+sc.pp.normalize_total(b, target_sum=10e4)
+
+c = pd.DataFrame(data = b.X, index = data_bulk_proc.index, columns = data_bulk_proc.columns)
+
+def normalize_proportions(data,copy):
+    if copy==True:
+        data_copy = data.copy()
+    else:
+        data_copy = data
+    data_copy[data_copy < 0] = 0
+    for raw in data_copy.index:
+        sum = data_copy.loc[raw].sum()
+        data_copy.loc[raw] = np.divide(data_copy.loc[raw],sum)
+    return data_copy
+
+clusters = centroids_sc_hv.columns
+clusters = clusters.values
+
+proportions_NuSVR = pd.DataFrame(columns=clusters)
+proportions_nnls = pd.DataFrame(columns=clusters)
+
+
+for column in data_bulk_proc.columns:
+    regr_NuSVR = NuSVR(nu=0.5,C=0.5,kernel='linear') #, nu=0.5
+    regr_NuSVR.fit(centroids_sc_pareto, data_bulk_proc[column])
+
+    proportions_NuSVR.loc[column] = regr_NuSVR.coef_[0]
+    proportions_nnls.loc[column] = sci.optimize.nnls(centroids_sc_pareto, data_bulk_proc[column])[0]
+
+proportions_NuSVR = normalize_proportions(proportions_NuSVR, copy = False)
+proportions_nnls = normalize_proportions(proportions_nnls, copy = False)
+
+proportions_NuSVR.to_csv('full_proportions_reclustered.csv')

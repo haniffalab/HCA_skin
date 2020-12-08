@@ -1,0 +1,23 @@
+library(Seurat)
+library(dplyr)
+library(reticulate)
+library(Matrix)
+library(stringr)
+library(readr)
+library(dplyr)
+library(reshape)
+library(ggplot2)
+
+setwd("/home/ngr18/hcaskin/Other_datasets/macro")
+immune.combined <- readRDS("integrated_macro.RDS")
+
+Idents(immune.combined)<-"Status"
+immune.combined<-subset(immune.combined, idents = c("skin", "Psoriasis", "Eczema"))
+
+Idents(immune.combined)<-"predicted.id"
+DefaultAssay(immune.combined) <- "RNA"
+macro_markers <- FindConservedMarkers(immune.combined, ident.1 = "Macro_2", 
+grouping.var = "Status", verbose = FALSE, test.use="MAST")
+
+setwd("/home/ngr18/hcaskin/Other_datasets/macro/")
+write.csv(macro_markers, "conserved_disease_fetal_macro_MAST.csv")

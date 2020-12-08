@@ -1,0 +1,32 @@
+library(Seurat)
+library(dplyr)
+library(reticulate)
+library(Matrix)
+library(stringr)
+library(tximport)
+library(readr)
+library(biomaRt)
+library(harmony)
+library(dplyr)
+library(ggplot2)
+library(reshape)
+library(Matrix)
+
+###Import adult healthy skin
+setwd('/home/ngr18/hcaskin/NAME')
+
+NAME_counts <- readMM("NAME.mtx")
+
+NAME_genes<-read.csv("NAME_genes.csv", row.names = 1)
+NAME_metadata<-read.csv('NAME_metadata.csv', row.names = 1)
+NAME_cells<-read.csv('NAME_cell_names.csv', row.names = 1)
+
+colnames(NAME_counts)<-NAME_cells$index
+rownames(NAME_counts)<-NAME_genes$gene_short_name
+
+NAME <- CreateSeuratObject(counts = NAME,
+project = "skin", min.cells = 3, min.features = 200)
+
+NAME <- AddMetaData(NAME, NAME_metadata)
+
+saveRDS(NAME, "NAME.RDS")

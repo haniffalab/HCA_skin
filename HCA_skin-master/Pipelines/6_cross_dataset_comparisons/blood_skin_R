@@ -1,0 +1,222 @@
+library(Seurat)
+library(dplyr)
+library(reticulate)
+library(Matrix)
+library(stringr)
+library(tximport)
+library(readr)
+library(biomaRt)
+library(harmony)
+library(dplyr)
+library(ggplot2)
+library(reshape)
+
+###Import 68k blood dataset from 10X website, construct Seurat object then recluster and extract myeloid 
+###and lymphoid cells
+
+setwd("~/hcaskin/blood/68k/filtered_matrices_mex")
+
+blood <- Read10X(data.dir = "./hg19/")
+
+blood <- CreateSeuratObject(counts = blood, project = "blood", min.cells = 3, min.features = 200)
+
+blood[["percent.mt"]] <- PercentageFeatureSet(blood, pattern = "^MT-")
+
+
+blood <- subset(blood, subset = nFeature_RNA > 400 & nFeature_RNA < 2000 & percent.mt < 5)
+blood <- NormalizeData(blood, normalization.method = "LogNormalize", scale.factor = 10000)
+blood <- FindVariableFeatures(blood, selection.method = "vst", nfeatures = 2000)
+
+all.genes <- rownames(blood)
+blood <- ScaleData(blood, features = all.genes)
+
+blood <- RunPCA(blood, features = VariableFeatures(object = blood))
+
+blood <- FindNeighbors(blood, dims = 1:10)
+blood <- FindClusters(blood, resolution = 0.5)
+
+blood <- RunUMAP(blood, dims = 1:10)
+
+blood_myeloid<-subset(blood, idents = c(8,9))
+blood_lymphoid<-subset(blood, idents = c(2,3,4,5,6,7))
+
+###Subcluster and label myeloid cells
+
+blood_myeloid <- FindVariableFeatures(blood_myeloid, selection.method = "vst", nfeatures = 2000)
+
+all.genes <- rownames(blood_myeloid)
+blood_myeloid <- ScaleData(blood_myeloid, features = all.genes)
+
+blood_myeloid <- RunPCA(blood_myeloid, features = VariableFeatures(object = blood_myeloid))
+
+blood_myeloid <- FindNeighbors(blood_myeloid, dims = 1:10)
+blood_myeloid <- FindClusters(blood_myeloid, resolution = 0.5)
+
+blood_myeloid <- RunUMAP(blood_myeloid, dims = 1:10)
+
+new.cluster.ids <- c("CD16_mono","CD16_mono","DC2","DC3","CD14_mono","CD14_mono","DC1","CD14_mono","CD14_mono")
+names(new.cluster.ids) <- levels(blood_myeloid)
+blood_myeloid <- RenameIdents(blood_myeloid, new.cluster.ids)
+blood_myeloid[["clustering"]] <- Idents(object = blood_myeloid)
+
+
+
+***Import 10X myeloid data***
+
+
+
+###Import myeloid cells from anndata/h5ad object in to Seurat
+
+myeloid_counts<-readMM("myeloid_counts.mtx")
+myeloid_genes<-read.csv("myeloid_genes.csv")
+myeloid_metadata<-read.csv('myeloid_metadata.csv')
+myeloid_cells<-read.csv('myeloid_cell_names.csv')
+
+row.names(myeloid_counts)<-myeloid_genes$gene_short_name
+colnames(myeloid_counts)<-myeloid_cells$index
+
+skin_myeloid <- CreateSeuratObject(counts = myeloid_counts, project = "skin", min.cells = 3, min.features = 200)
+row.names(myeloid_metadata)<-myeloid_metadata$index
+skin_myeloid <- AddMetaData(skin_myeloid, myeloid_metadata)
+skin_myeloid@meta.data["mode"]<-"tenx"
+
+blood_myeloid<-NormalizeData(blood_myeloid)
+blood_myeloid<-FindVariableFeatures(blood_myeloid, selection.method = "vst", 
+        nfeatures = 2000, verbose = FALSE)
+
+skin_myeloid<- NormalizeData(skin_myeloid)
+skin_myeloid<-FindVariableFeatures(skin_myeloid, selection.method = "vst", 
+        nfeatures = 2000, verbose = FALSE)
+
+###Integrate skin myeloid and blood myeloid datasets
+
+myeloid.anchors <- FindTransferAnchors(reference = skin_myeloid, query = blood_myeloid, reduction="pcaproject",
+    dims = 1:30)
+
+predictions <- TransferData(anchorset = myeloid.anchors, refdata = skin_myeloid$anno_final, 
+    dims = 1:30)
+
+blood <- AddMetaData(blood_myeloid, metadata = predictions)
+
+###Plot predicted ids of closest skin equivalent to blood clusters (Figure S5B)
+
+a<-blood@meta.data
+a$orig.ident<-NULL
+a$nCount_RNA<-NULL
+a$nFeature_RNA<-NULL
+a$percent.mt<-NULL
+a$RNA_snn_res.0.5<-NULL
+a$seurat_clusters<-NULL
+a$predicted.id<-NULL
+a$prediction.score.max<-NULL
+
+data<-aggregate(.~clustering,data=a,FUN=median)
+
+
+colnames(data)<-c("clustering", "N_moDC_3", "B_Macro_2", 
+                  "J_LC_4", "G_LC_1", "L_moDC_1",
+                 "K_Mono", "F_migDC", "I_LC_3", "A_Macro_1", "C_Inf_mono", "H_LC_2", "E_DC2", "M_moDC2",
+                 "D_DC1")
+
+data<-melt(data, id = c("clustering"))
+
+colnames(data)<-c("clustering","value","variable")
+
+
+###Reorder levels of data for plotting
+data$value <- factor(data$value, levels = rev(c("A_Macro_1","B_Macro_2", "C_Inf_mono",
+                                             "D_DC1", "E_DC2","F_migDC",
+                                            "G_LC_1", "H_LC_2","I_LC_3",  "J_LC_4",
+                                             "K_Mono",  "L_moDC_1","M_moDC2","N_moDC_3")))
+
+
+data$clustering <- factor(data$clustering, levels = (c("CD14_mono", "CD16_mono",
+                                                         "DC1", "DC2", "DC3")))
+
+###Plot figure S5B
+
+plot1<-ggplot(data = data, mapping = aes(x = clustering, y = value, fill = variable)) + 
+geom_tile() + 
+scale_fill_gradient(low = "lightblue", high = "#9f1545")
+ggsave("blood_skin_myeloid.pdf", plot = plot1, device = NULL, path = NULL,
+  scale = 1, dpi = 300)
+
+setwd("~/hcaskin/blood")
+
+###Perform standard preprocessing of blood and skin lymphoid data
+
+
+blood_lymph<-NormalizeData(blood_lymph)
+blood_lymph<-FindVariableFeatures(blood_lymph, selection.method = "vst", 
+        nfeatures = 2000, verbose = FALSE)
+
+skin_lymph<- NormalizeData(skin_lymph)
+skin_lymph<-FindVariableFeatures(skin_lymph, selection.method = "vst", 
+        nfeatures = 2000, verbose = FALSE)
+
+lymphoid.anchors <- FindTransferAnchors(reference = skin_lymph, query = blood_lymph, reduction="pcaproject",
+    dims = 1:30)
+
+predictions <- TransferData(anchorset = lymphoid.anchors, refdata = skin_lymph$combined, 
+    dims = 1:30)
+
+blood_lymph <- AddMetaData(blood_lymph, metadata = predictions)
+
+###Prepare data for plotting (Figure S4C)
+
+a<-blood_lymph@meta.data
+a$nGene<-NULL
+a$nUMI<-NULL
+a$orig.ident<-NULL
+a$gate<-NULL
+a$percent.mito<-NULL
+a$res.0.6<-NULL
+a$nCount_RNA<-NULL
+a$nFeature_RNA<-NULL
+a$predicted.id<-NULL
+a$index<-NULL
+a$sample_id<-NULL
+a$mad_prd<-NULL
+a$Status<-NULL
+a$Site<-NULL
+a$Tissue<-NULL
+a$prediction.score.max<-NULL
+a$prediction.score.Th<-NULL
+a$prediction.score.Treg<-NULL
+a$prediction.score.NK<-NULL
+a$prediction.score.ILC_NK<-NULL
+a$prediction.score.ILC2_3<-NULL
+a$prediction.score.ILC1<-NULL
+a$prediction.score.ILC1_NK<-NULL
+a$Site_old<-NULL
+a$Enrichment<-NULL
+a$Location<-NULL
+
+a$prediction.score.CD4.mem<-NULL
+a$prediction.score.CD4.naive<-NULL
+a$prediction.score.CD8.mem<-NULL
+a$prediction.score.CD8.naive<-NULL
+
+
+colnames(a)<-c("combined", "Epi_Th", "Epi_Tc", "Epi_Treg", 
+                 "Derm_Th", "Derm_Tc", "Derm_Treg")
+
+data<-aggregate(.~combined,data=a,FUN=median)
+
+data<-data[-c(2, 4), ]
+
+data<-melt(data, id = c("combined"))
+
+colnames(data)<-c("clustering","value","variable")
+
+###Reorder data for plotting
+
+data$value <- factor(data$value, levels = (c("Epi_Tc", "Epi_Th", "Epi_Treg",
+                                            "Derm_Tc", "Derm_Th", "Derm_Treg")))
+
+plot1<-ggplot(data = data, mapping = aes(x = clustering, y = value, fill = variable)) + 
+geom_tile() + 
+scale_fill_gradient(low = "lightblue", high = "#9f1545")
+ggsave("blood_skin_lymphoid_comparison.pdf", plot = plot1, device = NULL, path = NULL,
+  scale = 1, dpi = 300)
+plot1
