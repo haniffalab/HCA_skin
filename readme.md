@@ -10,8 +10,12 @@ To quickly browse our data, our online webportal resource may be accessed via (h
 ## Analysis workflows
 Cellranger count matrix files for Healthy, AD and PS skin 10X data were loaded into one object as described in https://github.com/haniffalab/FCA_liver for downstream analysis. 
 
+# Pipelines
 Generalisable scripts are saved in the 'pipelines' directory. Please refer to pipelines/readme file for further information on the methods used for each pipeline. The figure panels created through use of each pipeline are detailed in readme file.
 
-Custom scripts written by IG and VEGP and GR unless otherwise stated.
+# Celltype compartment analysis
+Custom scripts for specific celltype compartment analysis that do not fall under the "generalisable" category are available here. 
+
+All scripts written by IG and VEGP and GR unless otherwise stated.
 
 See [Human Cell Atlas](https://www.humancellatlas.org) for more details.
