@@ -7,6 +7,8 @@ Datasets analysed include: 10X data (Healthy adult Skin, PS skin, AD skin, fetal
 
 To quickly browse our data, our online webportal resource may be accessed via (https://developmentcellatlas.ncl.ac.uk/)
 
+Data is available as a h5ad file at 10.5281/zenodo.4453749
+
 ## Analysis workflows
 Cellranger count matrix files for Healthy, AD and PS skin 10X data were loaded into one object as described in https://github.com/haniffalab/FCA_liver for downstream analysis. 
 
